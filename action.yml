@@ -1,0 +1,109 @@
+name: 'Deploy WordPress Project'
+description: 'Deploy your WordPress plugin & theme with LFTP using GitHub Actions'
+author: 'webshr'
+branding:
+  icon: 'upload-cloud'
+  color: 'blue'
+inputs:
+  mode:
+    description: 'Set mode (`zip`, `file` or `dir`)'
+    required: true
+    default: zip
+  hostname:
+    description: 'FTP Hostname'
+    required: true
+  username:
+    description: 'FTP Username'
+    required: true
+  password:
+    description: 'FTP Password'
+    required: false
+  protocol:
+    description: 'FTP Protocol (FTP or SFTP)'
+    required: false
+    default: ftp
+  secure:
+    description: 'Secure FTP connection'
+    required: false
+    default: false
+  verify:
+    description: 'Verify SSL certificate'
+    required: false
+    default: false
+  file-name:
+    description: 'Name of the target file'
+    required: false
+  archive-name:
+    description: 'Name of the target archive'
+    required: false
+    default: ${{ github.event.repository.name }}
+  local-dir:
+    description: 'Path to the local (src) directory'
+    required: false
+    default: /
+  remote-dir:
+    description: 'Path to the remote (dest) directory'
+    required: false
+    default: /
+  debug:
+    description: 'Enable debug mode'
+    required: false
+    default: false
+  chmod:
+    description: 'Set permissions for the deployed files'
+    required: false
+    default: false
+  ignore:
+    description: 'Exclude files and directories from .distignore'
+    required: false
+    default: true
+  only-newer:
+    description: 'Upload only newer files'
+    required: false
+    default: false
+  clean-dir:
+    description: 'Clean the remote directory before deploying'
+    required: false
+    default: false
+  auto-confirm:
+    description: 'Auto-confirm the upload'
+    required: false
+    default: yes
+  pre-commands:
+    description: 'Commands to run before deploying'
+    required: false
+  post-commands:
+    description: 'Commands to run after deploying'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup LFTP
+      id: lftp-setup
+      run: sudo apt-get update && sudo apt-get install -y lftp
+      shell: bash
+
+    - name: Deploy
+      id: deploy
+      run: ${{ github.action_path }}/deploy.sh
+      env:
+        MODE: ${{ inputs.mode }}
+        
+        HOSTNAME: ${{ inputs.hostname }}
+        USERNAME: ${{ inputs.username }}
+        PASSWORD: ${{ inputs.password }}
+        PROTOCOL: ${{ inputs.protocol }}
+        SECURE: ${{ inputs.secure }}
+        VERIFY: ${{ inputs.verify }}
+        FILE_NAME: ${{ inputs.file-name }}
+        ARCHIVE_NAME: ${{ inputs.archive-name }}
+        LOCAL_DIR: ${{ inputs.local-dir }}
+        REMOTE_DIR: ${{ inputs.remote-dir }}
+        CHMOD: ${{ inputs.chmod }}
+        DEBUG: ${{ inputs.debug }}
+        ONLY_NEWER: ${{ inputs.only-newer }}
+        AUTO_CONFIRM: ${{ inputs.auto-confirm }}
+        CLEAN_DIR: ${{ inputs.clean-dir }}
+        IGNORE: ${{ inputs.ignore }}
+        PRE_COMMANDS: ${{ inputs.pre-commands }}
+        POST_COMMANDS: ${{ inputs.post-commands }}
