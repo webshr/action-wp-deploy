@@ -6,19 +6,19 @@ set -e
 # Determine the mode
 if [ "$MODE" = 'zip' ]; then
   METHOD="put"
-  TARGET="${ARCHIVE_NAME}.zip"
+  SOURCE="${ARCHIVE_NAME}.zip"
 elif [ "$MODE" = 'file' ]; then
   METHOD="put"
-  TARGET="${FILE_NAME}"
+  SOURCE="${FILE_NAME}"
 elif [ "$MODE" = 'dir' ]; then
   METHOD="mirror"
-  TARGET="${LOCAL_DIR}"
+  SOURCE="${LOCAL_DIR}"
 else
   echo "⚠️ Error: Invalid MODE specified!"
   exit 1
 fi
 
-# Check if the target exists
+# Check if the SOURCE exists
 if [ "$MODE" = 'zip' ]; then
   if [ ! -f "${ARCHIVE_NAME}.zip" ]; then
     echo "⚠️ Error: ${ARCHIVE_NAME}.zip not found!"
@@ -75,8 +75,8 @@ else
 fi
 
 # Read the .distignore file and construct the exclude list
-if [ "$IGNORE" = true ] && [ -f ".distignore" ]; then
-    EXCLUDES=$(sed 's/#.*//;/^$/d' .distignore | awk '{printf "--exclude-glob %s ", $1}')
+if [ "$IGNORE" = true ] && [ -f "${LOCAL_DIR}/.distignore" ]; then
+    EXCLUDES=$(sed 's/#.*//;/^$/d' "${LOCAL_DIR}/.distignore" | awk -v local_dir="${LOCAL_DIR}" '{printf "--exclude-glob %s/%s ", local_dir, $1}')
 else
     EXCLUDES=""
 fi
@@ -88,7 +88,6 @@ else
     CHMOD="chmod $CHMOD"
 fi
 
-
 # Set debug mode if DEBUG is set
 if [ -z "$DEBUG" ]; then
     DEBUG=""
@@ -98,13 +97,13 @@ fi
 
 # Determine the command to be executed
 if [ "$METHOD" = 'mirror' ]; then
-    COMMAND="mirror --verbose -R $ONLY_NEWER $EXCLUDES $(pwd)$TARGET ${REMOTE_DIR}"
+    COMMAND="mirror --verbose -R $ONLY_NEWER $EXCLUDES $(pwd)$SOURCE ${REMOTE_DIR}"
 else
-    COMMAND="put -O ${REMOTE_DIR} ${TARGET}"
+    COMMAND="put -O ${REMOTE_DIR} ${SOURCE}"
 fi
 
-# Deploy the target to the server
-echo "✨ Deploying ${TARGET} to ${HOSTNAME}/${REMOTE_DIR} using ${MODE}..."
+# Deploy the SOURCE to the server
+echo "✨ Deploying ${SOURCE} to ${HOSTNAME}/${REMOTE_DIR} using ${METHOD}..."
 
 lftp $DEBUG -e "set xfer:log 1; \
   set ftp:ssl-allow $SECURE; \
