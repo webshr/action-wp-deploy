@@ -24,11 +24,10 @@ jobs:
           hostname: your-wp-update-server.com # required
           username: yourFtpUsername # required
           password: ${{ secrets.ftp_password }} # required
-          protocol: sftp # required; defaults to ftp
-          secure: true # optional; defaults to false
+          protocol: ftps # required; defaults to ftp
           debug: true # optional; defaults to false
-          local-dir: / # optional; defaults to `/`
-          remote-dir: /path/to/directory # optional; defaults to `/`
+          source-dir: /dist # optional; defaults to `./`
+          target-dir: /path/to/directory # optional; defaults to `/`
 ```
 
 ## Excluding files from the directory
@@ -52,28 +51,34 @@ Add your keys directly to your .yml configuration file or referenced from the `S
 
 It is strongly recommended to save sensive credentials as secrets.
 
-
-| **Key Name**    | **Required** | **Example**                         | **Default**                           | **Description**                                  |
-| --------------- | ------------ | ----------------------------------- | ------------------------------------- | ------------------------------------------------ |
-| `mode`          | yes          | `file`                              | `zip`                                 | Set mode (`zip`, `file` or `dir`)                |
-| `hostname`      | yes          | `ftp.wpupdate.com`                  |                                       | Server hostname                                  |
-| `username`      | yes          | `username@wpupdate.com`             |                                       | Server username                                  |
-| `password`      | no           | `${{ secrets.pass }}`               |                                       | Server password                                  |
-| `protocol`      | no           | `sftp`                              | `ftp`                                 | FTP Protocol (FTP or SFTP)                       |
-| `secure`        | no           | `true`                              | `false`                               | Secure FTP connection                            |
-| `verify`        | no           | `true`                              | `false`                               | Verify SSL certificate and hostname              |
-| `file-name`     | no           | `index.php`                         |                                       | Name of the target file (with extension)         |
-| `archive-name`  | no           | `my-plugin`                         | `${{ github.event.repository.name }}` | Name of the target archive (zip only)            |
-| `local-dir`     | no           | `/dist-archive/`                    | `/`                                   | Path to the local directory (src)                |
-| `remote-dir`    | no           | `/web/api/v1/packages`              | `/`                                   | Path to the remote directory (dest)              |
-| `debug`         | no           | `true`                              | `false`                               | Enable debug mode                                |
-| `chmod`         | no           | `u+rwx`                             | `false`                               | Set permissions for the uploaded directory       |
-| `ignore`        | no           | `false`                             | `true`                                | Exclude files and directories from `.distignore` |
-| `only-newer`    | no           | `true`                              | `false`                               | Upload only newer files                          |
-| `clean-dir`     | no           | `true`                              | `false`                               | Clean the remote directory before uploading      |
-| `auto-confirm`  | no           |                                     | `yes`                                 | Auto-confirm the upload                          |
-| `pre-commands`  | no           | `mv /dest/project2 /temp/project2;` |                                       | Commands to run before deploying                 |
-| `post-commands` | no           | `mv /temp/project2 /dest/project2;` |                                       | Commands to run after deploying                  |
+| **Key Name**           | **Required** | **Example**                         | **Default**   | **Description**                                  |
+| ---------------------- | ------------ | ----------------------------------- | ------------- | ------------------------------------------------ |
+| `mode`                 | yes          | `file`                              | `file`        | Set mode (`zip`, `file` or `dir`)                |
+| `hostname`             | yes          | `ftp.wpupdate.com`                  |               | Server hostname                                  |
+| `port`                 | no           | `22`                                | `21`          | Server port                                      |
+| `username`             | yes          | `username@wpupdate.com`             |               | Server username                                  |
+| `password`             | no           | `${{ secrets.pass }}`               |               | Server password                                  |
+| `protocol`             | no           | `sftp`                              | `ftp`         | FTP Protocol (FTP, FTPS, HTTPS or SFTP)          |
+| `ssl-auth`             | no           | `true`                              | `false`       | SSL Authentication                               |
+| `ssl-force`            | no           | `true`                              | `false`       | Force SSL                                        |
+| `ssl-protect-data`     | no           | `true`                              | `false`       | Protect data with SSL                            |
+| `ssl-key-file`         | no           | `true`                              | `false`       | SSL Key File                                     |
+| `ssl-verify-cert`      | no           | `true`                              | `false`       | Verify SSL certificate                           |
+| `ssl-check-host`       | no           | `true`                              | `false`       | Check SSL Hostname                               |
+| `sftp-connect-program` | no           | `"ssh -a -x"`                       | `"ssh -a -x"` | SFTP Connect Program                             |
+| `file-name`            | no           | `.distignore`                       | `.distignore` | Name of the target file (with extension)         |
+| `archive-name`         | no           | `my-plugin`                         | `theme`       | Name of the target archive (zip only)            |
+| `source-dir`           | no           | `/dist-archive/`                    | `./`          | Path to the local directory (src)                |
+| `target-dir`           | no           | `/web/api/v1/packages`              | `/`           | Path to the remote directory (dest)              |
+| `debug`                | no           | `true`                              | `false`       | Enable debug mode                                |
+| `chmod`                | no           | `u+rwx`                             | `false`       | Set permissions for the uploaded directory       |
+| `ignore`               | no           | `true`                              | `false`       | Exclude files and directories from `.distignore` |
+| `only-newer`           | no           | `true`                              | `true`        | Upload only newer files                          |
+| `clean-dir`            | no           | `true`                              | `false`       | Clean the remote directory before uploading      |
+| `auto-confirm`         | no           | `true`                              | `true`        | Auto-confirm all SSH questions                   |
+| `max-retries`          | no           | `3`                                 | `3`           | Maximum number of retries                        |
+| `pre-commands`         | no           | `mv /dest/project2 /temp/project2;` | `""`          | Commands to run before deploying                 |
+| `post-commands`        | no           | `mv /temp/project2 /dest/project2;` | `""`          | Commands to run after deploying                  |
 
 ### Credits
 

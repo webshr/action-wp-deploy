@@ -8,10 +8,14 @@ inputs:
   mode:
     description: 'Set mode (`zip`, `file` or `dir`)'
     required: true
-    default: zip
+    default: file
   hostname:
     description: 'FTP Hostname'
     required: true
+  port:
+    description: 'FTP Port'
+    required: false
+    default: 21
   username:
     description: 'FTP Username'
     required: true
@@ -19,32 +23,53 @@ inputs:
     description: 'FTP Password'
     required: false
   protocol:
-    description: 'FTP Protocol (FTP or SFTP)'
+    description: 'FTP Protocol (FTP, FTPS, HTTPS or SFTP)'
     required: false
     default: ftp
-  secure:
-    description: 'Secure FTP connection'
+  ssl-auth:
+    description: 'SSL Authentication'
     required: false
     default: false
-  verify:
+  ssl-force:
+    description: 'Force SSL'
+    required: false
+    default: false
+  ssl-protect-data:
+    description: 'Protect data with SSL'
+    required: false
+    default: false
+  ssl-key-file:
+    description: 'SSL Key File'
+    required: false
+    default: false
+  ssl-verify-cert:
     description: 'Verify SSL certificate'
     required: false
     default: false
+  ssl-check-host:
+    description: 'Check SSL Hostname'
+    required: false
+    default: false
+  sftp-connect-program:
+    description: 'SFTP Connect Program'
+    required: false
+    default: "ssh -a -x"
   file-name:
     description: 'Name of the target file'
     required: false
+    default: .distignore
   archive-name:
     description: 'Name of the target archive'
     required: false
-    default: ${{ github.event.repository.name }}
-  local-dir:
-    description: 'Path to the local (src) directory'
+    default: theme
+  source-dir:
+    description: 'Path to the local directory (src)'
     required: false
-    default: /
-  remote-dir:
-    description: 'Path to the remote (dest) directory'
+    default: './'
+  target-dir:
+    description: 'Path to the remote directory (dest)'
     required: false
-    default: /
+    default: '/'
   debug:
     description: 'Enable debug mode'
     required: false
@@ -56,25 +81,31 @@ inputs:
   ignore:
     description: 'Exclude files and directories from .distignore'
     required: false
-    default: true
+    default: false
   only-newer:
     description: 'Upload only newer files'
     required: false
-    default: false
+    default: true
   clean-dir:
     description: 'Clean the remote directory before deploying'
     required: false
     default: false
   auto-confirm:
-    description: 'Auto-confirm the upload'
+    description: 'Auto-confirm all SSH questions'
     required: false
-    default: yes
+    default: true
+  max-retries:
+    description: 'Maximum number of retries'
+    required: false
+    default: 3
   pre-commands:
     description: 'Commands to run before deploying'
     required: false
+    default: ""
   post-commands:
     description: 'Commands to run after deploying'
     required: false
+    default: ""
 runs:
   using: 'composite'
   steps:
@@ -88,22 +119,29 @@ runs:
       run: ${{ github.action_path }}/deploy.sh
       env:
         MODE: ${{ inputs.mode }}
-        
         HOSTNAME: ${{ inputs.hostname }}
+        PORT: ${{ inputs.port }}
         USERNAME: ${{ inputs.username }}
         PASSWORD: ${{ inputs.password }}
         PROTOCOL: ${{ inputs.protocol }}
         SECURE: ${{ inputs.secure }}
-        VERIFY: ${{ inputs.verify }}
+        SSL_AUTH: ${{ inputs.ssl-auth }}
+        SSL_FORCE: ${{ inputs.ssl-force }}
+        SSL_PROTECT_DATA: ${{ inputs.ssl-protect-data }}
+        SSL_KEY_FILE: ${{ inputs.ssl-key-file }}
+        SSL_VERIFY_CERT: ${{ inputs.ssl-verify-cert }}
+        SSL_CHECK_HOST: ${{ inputs.ssl-check-host }}
+        SFTP_CONNECT_PROGRAM: ${{ inputs.sftp-connect-program }}
+        SFTP_AUTO_CONFIRM: ${{ inputs.sftp-auto-confirm }}
         FILE_NAME: ${{ inputs.file-name }}
         ARCHIVE_NAME: ${{ inputs.archive-name }}
-        LOCAL_DIR: ${{ inputs.local-dir }}
-        REMOTE_DIR: ${{ inputs.remote-dir }}
+        SOURCE_DIR: ${{ inputs.source-dir }}
+        TARGET_DIR: ${{ inputs.target-dir }}
         CHMOD: ${{ inputs.chmod }}
         DEBUG: ${{ inputs.debug }}
         ONLY_NEWER: ${{ inputs.only-newer }}
-        AUTO_CONFIRM: ${{ inputs.auto-confirm }}
         CLEAN_DIR: ${{ inputs.clean-dir }}
         IGNORE: ${{ inputs.ignore }}
+        MAX_RETRIES: ${{ inputs.max-retries }}
         PRE_COMMANDS: ${{ inputs.pre-commands }}
         POST_COMMANDS: ${{ inputs.post-commands }}
