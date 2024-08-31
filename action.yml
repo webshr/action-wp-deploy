@@ -1,4 +1,4 @@
-name: 'Deploy WordPress Project'
+name: 'Deploy WordPress Project with LFTP'
 description: 'Deploy your WordPress plugin & theme with LFTP using GitHub Actions'
 author: 'webshr'
 branding:
