@@ -15,6 +15,13 @@ if [ -z "$USERNAME" ]; then
     exit 1
 fi
 
+# Set host if port is set
+if [ -n "$PORT" ]; then
+    HOST="$HOSTNAME:$PORT"
+else 
+    HOST="$HOSTNAME"
+fi
+
 # Set correct path for local directory
 if [ -n "$SOURCE_DIR" ]; then
     SOURCE_DIR="$(pwd)${SOURCE_DIR#./}"
@@ -71,7 +78,7 @@ fi
 
 # Upload only new files if ONLY_NEWER is set
 if [ "$ONLY_NEWER" = true ]; then
-    ONLY_NEWER="-e --only-newer --ignore-time"
+    ONLY_NEWER="-e --only-newer --ignore-time --delete-first"
 else
     ONLY_NEWER=""
 fi
@@ -82,8 +89,8 @@ if [ -n "$IGNORE_FILE" ]; then
     if [ -f "$IGNORE_FILE" ] && [ -r "$IGNORE_FILE" ]; then
         IGNORES=$(sed '/^!/d;s/#.*//;/^$/d' "${SOURCE_DIR}/$IGNORE_FILE" | awk '{printf "--exclude-glob %s ", $1}')
     else
-        echo "⚠️ Error: Ignore file '$IGNORE_FILE' not found or not readable."
-        exit 1
+        echo "⚠️ Error: Ignore file '$IGNORE_FILE' not found or not readable. Skipping..."
+        IGNORES=""
     fi
 else
     IGNORES=""
@@ -150,6 +157,6 @@ lftp $DEBUG -e "set xfer:log 1; \
   $CHMOD; \
   $POST_COMMANDS; \
   bye" \
-    -u $USERNAME,$PASSWORD $HOSTNAME:$PORT
+    -u $USERNAME,$PASSWORD $HOST
 
 echo "🎉 Files uploaded successfully."
