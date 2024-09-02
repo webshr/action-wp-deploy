@@ -132,7 +132,6 @@ runs:
         USERNAME: ${{ inputs.username }}
         PASSWORD: ${{ inputs.password }}
         PROTOCOL: ${{ inputs.protocol }}
-        SECURE: ${{ inputs.secure }}
         SSL_AUTH: ${{ inputs.ssl-auth }}
         SSL_FORCE: ${{ inputs.ssl-force }}
         SSL_PROTECT_DATA: ${{ inputs.ssl-protect-data }}
@@ -147,6 +146,7 @@ runs:
         TARGET_DIR: ${{ inputs.target-dir }}
         CHMOD: ${{ inputs.chmod }}
         DEBUG: ${{ inputs.debug }}
+        OPTIONS: ${{ inputs.options }}
         ONLY_NEWER: ${{ inputs.only-newer }}
         CLEAN_DIR: ${{ inputs.clean-dir }}
         IGNORE_FILE: ${{ inputs.ignore-file }}

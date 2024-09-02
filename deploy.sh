@@ -26,7 +26,7 @@ fi
 if [ -n "$SOURCE_DIR" ]; then
     SOURCE_DIR="$(pwd)${SOURCE_DIR#./}"
 else
-    SOURCE_DIR=$(pwd)/
+    SOURCE_DIR=$(pwd)
 fi
 
 # Check if local directory has a leading slash and no trailing slash
@@ -121,6 +121,7 @@ ftps | https)
     PROTOCOL_OPTIONS="set ftp:ssl-allow true; \
                      set ftp:ssl-force $SSL_FORCE; \
                      set ftp:ssl-protect-data $SSL_PROTECT_DATA; \
+                     set tp:ssl-auth $SSL_AUTH; \
                      set ssl:verify-certificate $SSL_VERIFY_CERT; \
                      set ssl:check-hostname $SSL_CHECK_HOST; \
                      set ssl:key-file $SSL_KEY_FILE;"
