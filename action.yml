@@ -74,14 +74,22 @@ inputs:
     description: 'Enable debug mode'
     required: false
     default: false
+  options:
+    description: 'Additional options for LFTP'
+    required: false
   chmod:
     description: 'Set permissions for the deployed files'
     required: false
     default: false
-  ignore:
-    description: 'Exclude files and directories from .distignore'
+  ignore-file:
+    description: 'Automatically exclude files/directories from an ignore file (e.g. .ftpignore)'
     required: false
-    default: false
+  excludes:
+    description: 'Exclude files/directories from deployment'
+    required: false
+  includes:
+    description: 'Include files/directories in deployment'
+    required: false
   only-newer:
     description: 'Upload only newer files'
     required: false
@@ -141,7 +149,9 @@ runs:
         DEBUG: ${{ inputs.debug }}
         ONLY_NEWER: ${{ inputs.only-newer }}
         CLEAN_DIR: ${{ inputs.clean-dir }}
-        IGNORE: ${{ inputs.ignore }}
+        IGNORE_FILE: ${{ inputs.ignore-file }}
+        EXCLUDES: ${{ inputs.excludes }}
+        INCLUDES: ${{ inputs.includes }}
         MAX_RETRIES: ${{ inputs.max-retries }}
         PRE_COMMANDS: ${{ inputs.pre-commands }}
         POST_COMMANDS: ${{ inputs.post-commands }}

@@ -3,11 +3,23 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Check if hostname is set
+if [ -z "$HOSTNAME" ]; then
+    echo "⚠️ Error: HOSTNAME is not set!"
+    exit 1
+fi
+
+# Check if username is set
+if [ -z "$USERNAME" ]; then
+    echo "⚠️ Error: USERNAME is not set!"
+    exit 1
+fi
+
 # Set correct path for local directory
-if [ "$SOURCE_DIR" = false ]; then
-    SOURCE_DIR=$(pwd)/
-else
+if [ -n "$SOURCE_DIR" ]; then
     SOURCE_DIR="$(pwd)${SOURCE_DIR#./}"
+else
+    SOURCE_DIR=$(pwd)/
 fi
 
 # Check if local directory has a leading slash and no trailing slash
@@ -50,18 +62,6 @@ elif [ "$MODE" = 'dir' ]; then
     fi
 fi
 
-# Check if hostname is set
-if [ -z "$HOSTNAME" ]; then
-    echo "⚠️ Error: HOSTNAME is not set!"
-    exit 1
-fi
-
-# Check if username is set
-if [ -z "$USERNAME" ]; then
-    echo "⚠️ Error: USERNAME is not set!"
-    exit 1
-fi
-
 # Clean up the remote directory if CLEAN_DIR is set
 if [ "$CLEAN_DIR" = true ]; then
     CLEAN_DIR="rm -r $TARGET_DIR"
@@ -76,61 +76,69 @@ else
     ONLY_NEWER=""
 fi
 
-# Read the .distignore file and construct the exclude list
-if [ "$IGNORE" = true ] && [ -f "${SOURCE_DIR}/.distignore" ]; then
-    IGNORES="--exclude-glob-from=${SOURCE_DIR}/.distignore"
+# Check if the ignore file is specified
+if [ -n "$IGNORE_FILE" ]; then
+    # Check if the ignore file exists and is readable
+    if [ -f "$IGNORE_FILE" ] && [ -r "$IGNORE_FILE" ]; then
+        IGNORES=$(sed '/^!/d;s/#.*//;/^$/d' "${SOURCE_DIR}/$IGNORE_FILE" | awk '{printf "--exclude-glob %s ", $1}')
+    else
+        echo "⚠️ Error: Ignore file '$IGNORE_FILE' not found or not readable."
+        exit 1
+    fi
 else
     IGNORES=""
 fi
 
 # Set CHMOD
-if [ "$CHMOD" = false ]; then
-    CHMOD=""
-else
+if [ "$CHMOD" = true ]; then
     CHMOD="chmod $CHMOD"
+else
+    CHMOD=""
 fi
 
-# Set debug mode if DEBUG is set
-if [ -z "$DEBUG" ]; then
-    DEBUG=""
-else
+# Set debug mode if DEBUG is set to true
+if [ "$DEBUG" = true ]; then
     DEBUG="-d"
+    VERBOSE="--verbose"
+else
+    DEBUG=""
+    VERBOSE=""
 fi
 
 # Set protocol-specific options
 case "$PROTOCOL" in
-    ftp)
-        PROTOCOL_OPTIONS=""
-        ;;
-    ftps|https)
-        PROTOCOL_OPTIONS="set ftp:ssl-allow true; \
+ftp)
+    PROTOCOL_OPTIONS=""
+    ;;
+ftps | https)
+    PROTOCOL_OPTIONS="set ftp:ssl-allow true; \
                      set ftp:ssl-force $SSL_FORCE; \
                      set ftp:ssl-protect-data $SSL_PROTECT_DATA; \
                      set ssl:verify-certificate $SSL_VERIFY_CERT; \
                      set ssl:check-hostname $SSL_CHECK_HOST; \
                      set ssl:key-file $SSL_KEY_FILE;"
-        ;;
-    sftp)
-        PROTOCOL_OPTIONS="set sftp:auto-confirm $SFTP_AUTO_CONFIRM; \
+    ;;
+sftp)
+    PROTOCOL_OPTIONS="set sftp:auto-confirm $SFTP_AUTO_CONFIRM; \
                      set sftp:connect-program $SFTP_CONNECT_PROGRAM;"
-        ;;
-    *)
-        echo "⚠️ Error: Unsupported PROTOCOL specified!"
-        exit 1
-        ;;
+    ;;
+*)
+    echo "⚠️ Error: Unsupported protocol specified!"
+    exit 1
+    ;;
 esac
 
 # Determine the command to be executed
 if [ "$METHOD" = 'mirror' ]; then
     # Deploy directory
-    COMMAND="mirror -R ${SOURCE} ${TARGET_DIR} $ONLY_NEWER $IGNORES $EXCLUDES $INCLUDES --verbose"
+    COMMAND="mirror -R ${SOURCE} ${TARGET_DIR} $ONLY_NEWER $IGNORES $EXCLUDES $INCLUDES $VERBOSE $OPTIONS"
 elif [ "$METHOD" = 'put' ]; then
-    # Deploy single file
-    COMMAND="put -O ${TARGET_DIR} ${SOURCE}"
+    # Deploy single file/archive
+    COMMAND="put -O ${TARGET_DIR} ${SOURCE} $OPTIONS"
 fi
 
 # Execute the deployment
-echo "✨ Mirroring '${SOURCE}' to '${HOSTNAME}${TARGET_DIR}'"
+echo "✨ Uploading '${SOURCE}' to '${HOSTNAME}${TARGET_DIR}'"
 
 lftp $DEBUG -e "set xfer:log 1; \
   $PROTOCOL_OPTIONS \
@@ -144,4 +152,4 @@ lftp $DEBUG -e "set xfer:log 1; \
   bye" \
     -u $USERNAME,$PASSWORD $HOSTNAME:$PORT
 
-echo "🎉 Files mirrored successfully."
+echo "🎉 Files uploaded successfully."
